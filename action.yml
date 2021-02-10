@@ -1,0 +1,11 @@
+name: Add team label
+description: Add team labels to new pull requests
+author: Richard Macklin
+inputs:
+  milliseconds: # change this
+    required: true
+    description: input description here
+    default: default value if applicable
+runs:
+  using: node12
+  main: dist/index.js
