@@ -40,6 +40,15 @@ const github = __importStar(__webpack_require__(5438));
 async function run() {
     try {
         const token = core.getInput('repo_token', { required: true });
+        const externalRepoToken = core.getInput('external_repo_token', {
+            required: false
+        });
+        const teamsConfigRepo = core.getInput('teams_configuration_repo', {
+            required: true
+        });
+        const teamsConfigPath = core.getInput('teams_configuration_path', {
+            required: true
+        });
         const prNumber = getPrNumber();
         if (!prNumber) {
             throw new Error('Could not get pull request number from context');
@@ -50,6 +59,26 @@ async function run() {
         }
         core.debug(`PR author: ${prAuthor}`);
         const client = new github.GitHub(token);
+        const externalRepoClient = externalRepoToken
+            ? new github.GitHub(externalRepoToken)
+            : client;
+        const [teamsRepoOwner, teamsRepoName] = getRepoParts(teamsConfigRepo);
+        const teamsConfigLocation = {
+            owner: teamsRepoOwner,
+            repo: teamsRepoName,
+            path: teamsConfigPath
+        };
+        core.debug(`Fetching teams from ${JSON.stringify(teamsConfigLocation)}`);
+        const response = await externalRepoClient.repos.getContents(teamsConfigLocation);
+        if (Array.isArray(response.data)) {
+            throw new Error('teams_configuration_path must point to a single teams configuration file, not a directory');
+        }
+        const { content, encoding } = response.data;
+        if (typeof content !== 'string' || encoding !== 'base64') {
+            throw new Error('Octokit.repos.getContents returned an unexpected response');
+        }
+        const teamsYAML = Buffer.from(content, encoding).toString();
+        core.debug(`raw teams config:\n${teamsYAML}`);
         const labels = [];
         if (prNumber % 2 === 0) {
             labels.push('even');
@@ -80,6 +109,12 @@ function getPrNumber() {
         return undefined;
     }
     return pullRequest.number;
+}
+function getRepoParts(teamsConfigRepoInput) {
+    const parts = teamsConfigRepoInput.split('/');
+    return parts.length > 1
+        ? parts
+        : [github.context.repo.owner, teamsConfigRepoInput];
 }
 async function addLabels(client, prNumber, labels) {
     await client.issues.addLabels({

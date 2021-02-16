@@ -7,6 +7,36 @@ inputs:
     description: >
       This token will be used to authenticate to GitHub when adding labels to
       your pull requests.
+  external_repo_token:
+    required: false
+    description: >
+      If your `teams.yml` file is in a private repository and you are using
+      `secrets.GITHUB_TOKEN` for the `repo_token`, you'll need to pass a
+      separate token to `external_repo_token` to give the action read access
+      to the `teams.yml` file (`secrets.GITHUB_TOKEN` won't have access).
+
+      Conversely, you do not need to set `external_repo_token` if your
+      `teams.yml` file is in a public repository OR if you have set
+      `repo_token` using a token that has the necessary access.
+  teams_configuration_repo:
+    required: false
+    default: .github
+    description: >
+      The repository that contains the `teams.yml` file to use in your action.
+      The format is either owner_name/repo_name or just repo_name. In the latter
+      case, the action assumes the owner_name is the same as the owner of the
+      repository in which the action is running.
+
+      This does not need to be set if you follow the convention of storing your
+      `teams.yml` file in the owner's `.github` repository.
+  teams_configuration_path:
+    required: false
+    default: .github/teams.yml
+    description: >
+      The path to the `teams.yml` file within the teams_configuration_repo.
+
+      This does not need to be set if you use the conventional path of
+      `.github/teams.yml`.
 runs:
   using: node12
   main: dist/index.js
