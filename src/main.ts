@@ -10,6 +10,13 @@ async function run(): Promise<void> {
       throw new Error('Could not get pull request number from context');
     }
 
+    const prAuthor = getPrAuthor();
+    if (!prAuthor) {
+      throw new Error('Could not get pull request author from context');
+    }
+
+    core.debug(`PR author: ${prAuthor}`);
+
     const client = new github.GitHub(token);
     const labels = [];
 
@@ -28,6 +35,15 @@ async function run(): Promise<void> {
     core.error(error);
     core.setFailed(error.message);
   }
+}
+
+function getPrAuthor(): string | undefined {
+  const pullRequest = github.context.payload.pull_request;
+  if (!pullRequest) {
+    return undefined;
+  }
+
+  return pullRequest.user.login;
 }
 
 function getPrNumber(): number | undefined {

@@ -44,6 +44,11 @@ async function run() {
         if (!prNumber) {
             throw new Error('Could not get pull request number from context');
         }
+        const prAuthor = getPrAuthor();
+        if (!prAuthor) {
+            throw new Error('Could not get pull request author from context');
+        }
+        core.debug(`PR author: ${prAuthor}`);
         const client = new github.GitHub(token);
         const labels = [];
         if (prNumber % 2 === 0) {
@@ -61,6 +66,13 @@ async function run() {
         core.error(error);
         core.setFailed(error.message);
     }
+}
+function getPrAuthor() {
+    const pullRequest = github.context.payload.pull_request;
+    if (!pullRequest) {
+        return undefined;
+    }
+    return pullRequest.user.login;
 }
 function getPrNumber() {
     const pullRequest = github.context.payload.pull_request;
