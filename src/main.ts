@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
+import * as yaml from 'js-yaml';
 
 async function run(): Promise<void> {
   try {
@@ -61,6 +62,51 @@ async function run(): Promise<void> {
     const teamsYAML = Buffer.from(content, encoding).toString();
 
     core.debug(`raw teams config:\n${teamsYAML}`);
+
+    const teamsData = JSON.parse(JSON.stringify(yaml.safeLoad(teamsYAML)));
+    const unexpectedFormatError = new Error(
+      'Unexpected team data format (expected an object mapping team names to team metadata)'
+    );
+
+    if (typeof teamsData !== 'object') {
+      throw unexpectedFormatError;
+    }
+
+    const teamLabelsToMembers: Map<string, string[]> = new Map();
+    for (const teamName in teamsData) {
+      const teamData = teamsData[teamName];
+
+      if (teamData.members) {
+        const { members, short_name } = teamData;
+        const teamLabel =
+          typeof short_name === 'string' ? short_name : teamName;
+
+        if (Array.isArray(members)) {
+          const teamGitHubUsernames: string[] = [];
+
+          for (const member of members) {
+            if (typeof member.github === 'string') {
+              teamGitHubUsernames.push(member.github);
+            } else {
+              throw new Error(
+                `Invalid member data encountered within team ${teamName}`
+              );
+            }
+          }
+
+          teamLabelsToMembers.set(teamLabel, teamGitHubUsernames);
+          continue;
+        }
+      }
+
+      throw unexpectedFormatError;
+    }
+
+    core.debug(
+      `Parsed teams configuration into this mapping of team labels to members: ${JSON.stringify(
+        Object.fromEntries(teamLabelsToMembers)
+      )}`
+    );
 
     const labels = [];
 
