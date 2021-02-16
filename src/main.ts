@@ -108,13 +108,9 @@ async function run(): Promise<void> {
       )}`
     );
 
-    const labels = [];
+    const allMatchingLabels = getLabelsForAuthor(teamLabelsToMembers, prAuthor);
 
-    if (prNumber % 2 === 0) {
-      labels.push('even');
-    } else {
-      labels.push('odd');
-    }
+    const labels = allMatchingLabels.length > 0 ? [allMatchingLabels[0]] : [];
 
     core.debug(`labels to add: ${JSON.stringify(labels)}`);
 
@@ -125,6 +121,21 @@ async function run(): Promise<void> {
     core.error(error);
     core.setFailed(error.message);
   }
+}
+
+function getLabelsForAuthor(
+  labelToAuthorsMap: Map<string, string[]>,
+  author: string
+): string[] {
+  const labels: string[] = [];
+
+  for (const [label, authors] of labelToAuthorsMap.entries()) {
+    if (authors.includes(author)) {
+      labels.push(label);
+    }
+  }
+
+  return labels;
 }
 
 function getPrAuthor(): string | undefined {

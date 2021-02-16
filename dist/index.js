@@ -108,13 +108,8 @@ async function run() {
             throw unexpectedFormatError;
         }
         core.debug(`Parsed teams configuration into this mapping of team labels to members: ${JSON.stringify(Object.fromEntries(teamLabelsToMembers))}`);
-        const labels = [];
-        if (prNumber % 2 === 0) {
-            labels.push('even');
-        }
-        else {
-            labels.push('odd');
-        }
+        const allMatchingLabels = getLabelsForAuthor(teamLabelsToMembers, prAuthor);
+        const labels = allMatchingLabels.length > 0 ? [allMatchingLabels[0]] : [];
         core.debug(`labels to add: ${JSON.stringify(labels)}`);
         if (labels.length > 0) {
             await addLabels(client, prNumber, labels);
@@ -124,6 +119,15 @@ async function run() {
         core.error(error);
         core.setFailed(error.message);
     }
+}
+function getLabelsForAuthor(labelToAuthorsMap, author) {
+    const labels = [];
+    for (const [label, authors] of labelToAuthorsMap.entries()) {
+        if (authors.includes(author)) {
+            labels.push(label);
+        }
+    }
+    return labels;
 }
 function getPrAuthor() {
     const pullRequest = github.context.payload.pull_request;
