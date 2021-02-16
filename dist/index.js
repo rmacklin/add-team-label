@@ -34,44 +34,33 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__webpack_require__(2186));
 const github = __importStar(__webpack_require__(5438));
-function run() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const token = core.getInput('repo_token', { required: true });
-            const prNumber = getPrNumber();
-            if (!prNumber) {
-                throw new Error('Could not get pull request number from context');
-            }
-            const client = new github.GitHub(token);
-            const labels = [];
-            if (prNumber % 2 === 0) {
-                labels.push('even');
-            }
-            else {
-                labels.push('odd');
-            }
-            core.debug(`labels to add: ${JSON.stringify(labels)}`);
-            if (labels.length > 0) {
-                yield addLabels(client, prNumber, labels);
-            }
+async function run() {
+    try {
+        const token = core.getInput('repo_token', { required: true });
+        const prNumber = getPrNumber();
+        if (!prNumber) {
+            throw new Error('Could not get pull request number from context');
         }
-        catch (error) {
-            core.error(error);
-            core.setFailed(error.message);
+        const client = new github.GitHub(token);
+        const labels = [];
+        if (prNumber % 2 === 0) {
+            labels.push('even');
         }
-    });
+        else {
+            labels.push('odd');
+        }
+        core.debug(`labels to add: ${JSON.stringify(labels)}`);
+        if (labels.length > 0) {
+            await addLabels(client, prNumber, labels);
+        }
+    }
+    catch (error) {
+        core.error(error);
+        core.setFailed(error.message);
+    }
 }
 function getPrNumber() {
     const pullRequest = github.context.payload.pull_request;
@@ -80,14 +69,12 @@ function getPrNumber() {
     }
     return pullRequest.number;
 }
-function addLabels(client, prNumber, labels) {
-    return __awaiter(this, void 0, void 0, function* () {
-        yield client.issues.addLabels({
-            owner: github.context.repo.owner,
-            repo: github.context.repo.repo,
-            issue_number: prNumber,
-            labels
-        });
+async function addLabels(client, prNumber, labels) {
+    await client.issues.addLabels({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        issue_number: prNumber,
+        labels
     });
 }
 run();
