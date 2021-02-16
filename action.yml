@@ -18,6 +18,13 @@ inputs:
       Conversely, you do not need to set `external_repo_token` if your
       `teams.yml` file is in a public repository OR if you have set
       `repo_token` using a token that has the necessary access.
+  only_add_first_matching_label:
+    required: false
+    default: true
+    description: >
+      By default, this action will only add the label of the first team that it
+      finds for a given pull request author. If you'd like to add a label for
+      every matching team, set this input to `false`.
   teams_configuration_repo:
     required: false
     default: .github

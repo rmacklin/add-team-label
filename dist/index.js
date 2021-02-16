@@ -50,6 +50,8 @@ async function run() {
         const teamsConfigPath = core.getInput('teams_configuration_path', {
             required: true
         });
+        const onlyAddFirstMatchingLabel = core.getInput('only_add_first_matching_label', { required: true }) ===
+            'true';
         const prNumber = getPrNumber();
         if (!prNumber) {
             throw new Error('Could not get pull request number from context');
@@ -109,7 +111,11 @@ async function run() {
         }
         core.debug(`Parsed teams configuration into this mapping of team labels to members: ${JSON.stringify(Object.fromEntries(teamLabelsToMembers))}`);
         const allMatchingLabels = getLabelsForAuthor(teamLabelsToMembers, prAuthor);
-        const labels = allMatchingLabels.length > 0 ? [allMatchingLabels[0]] : [];
+        const labels = allMatchingLabels.length > 0
+            ? onlyAddFirstMatchingLabel
+                ? [allMatchingLabels[0]]
+                : allMatchingLabels
+            : [];
         core.debug(`labels to add: ${JSON.stringify(labels)}`);
         if (labels.length > 0) {
             await addLabels(client, prNumber, labels);
