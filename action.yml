@@ -2,10 +2,11 @@ name: Add team label
 description: Add team labels to new pull requests
 author: Richard Macklin
 inputs:
-  milliseconds: # change this
+  repo_token:
     required: true
-    description: input description here
-    default: default value if applicable
+    description: >
+      This token will be used to authenticate to GitHub when adding labels to
+      your pull requests.
 runs:
   using: node12
   main: dist/index.js

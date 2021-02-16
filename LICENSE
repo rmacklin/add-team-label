@@ -4,7 +4,9 @@ Copyright (c) 2021 Richard Macklin
 
 The code copies its structure from
 https://github.com/actions/typescript-action/tree/b4f07da86601110b682c6f45ff575f5fbd0f8cdf
-which is Copyright (c) 2018 GitHub, Inc. and contributors
+and the `getPrNumber` and `addLabels` functions from
+https://github.com/actions/labeler/blob/69990a6043bd2b78ec675ec775d8e1cb62204ff0/src/main.ts
+both of which are Copyright (c) 2018 GitHub, Inc. and contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
